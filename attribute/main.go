@@ -28,7 +28,7 @@ func GetRedisCli() *redis.Client {
 	return cli
 }
 
-func main()  {
+func main() {
 
 	cli := GetRedisCli()
 
@@ -37,48 +37,48 @@ func main()  {
 	rows := ReadCSV(dir)
 
 	var keys []models.CodeSystem
-	for idx , row := range rows{
-		if !Exists(row[0],keys){
-			keys = append(keys,models.CodeSystem{
-				Code:strconv.Itoa(idx),
-				Display:row[0],
+	for idx, row := range rows {
+		if !Exists(row[0], keys) {
+			keys = append(keys, models.CodeSystem{
+				Code:    strconv.Itoa(idx),
+				Display: row[0],
 			})
 		}
 	}
 
 	// Push all the keys To redis
 	key := fmt.Sprintf("attributes")
-	err := PushToRedis(cli , key , keys)
-	if err != nil{
+	err := PushToRedis(cli, key, keys)
+	if err != nil {
 		panic(err)
 	}
 
-	for _ , key := range keys{
+	for _, key := range keys {
 		fmt.Println(key)
 
 		var values []models.CodeSystem
-		for idx , row := range rows{
-			if key.Display == row[0]{
-				values = append(values,models.CodeSystem{
-					Code:strconv.Itoa(idx+1),
-					Display:row[1],
+		for idx, row := range rows {
+			if key.Display == row[0] {
+				values = append(values, models.CodeSystem{
+					Code:    strconv.Itoa(idx + 1),
+					Display: row[1],
 				})
 			}
 		}
 
-		key := fmt.Sprintf("attribute::%s",key.Code)
-		err := PushToRedis(cli,key,values)
-		if err != nil{
+		key := fmt.Sprintf("attribute::%s", key.Code)
+		err := PushToRedis(cli, key, values)
+		if err != nil {
 			panic(err)
 		}
 
-		fmt.Println("\t",values)
+		fmt.Println("\t", values)
 	}
 }
 
-func Exists(data string , arr []models.CodeSystem) bool {
-	for _ , val := range arr{
-		if val.Display == data{
+func Exists(data string, arr []models.CodeSystem) bool {
+	for _, val := range arr {
+		if val.Display == data {
 			return true
 			break
 		}
@@ -102,16 +102,16 @@ func ReadCSV(dir string) [][]string {
 	return rows[1:]
 }
 
-func PushToRedis(cli *redis.Client , key string , value interface{}) error {
+func PushToRedis(cli *redis.Client, key string, value interface{}) error {
 	// Marshalling the data before Pushing into Redis
-	b , err := json.Marshal(value)
-	if err != nil{
+	b, err := json.Marshal(value)
+	if err != nil {
 		panic(err)
 	}
 
-	status := cli.Set(key,string(b),0)
-	if status.Err() != nil{
-		return(status.Err())
+	status := cli.Set(key, string(b), 0)
+	if status.Err() != nil {
+		return (status.Err())
 	}
 	return nil
 }

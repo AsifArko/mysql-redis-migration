@@ -25,7 +25,6 @@ func main() {
 	}
 	fmt.Println(ping)
 
-
 	// Location Excel Directory
 	dir := "/home/hoods/go/src/gitlab.com/sh-migration/location/xl-data/location.csv"
 
@@ -34,11 +33,11 @@ func main() {
 
 	// Generate city information
 	var cities []models.CodeSystem
-	for idx , row := range rows {
-		if !Exists(row[1],cities){
-			cities = append(cities , models.CodeSystem{
-				Code:strconv.Itoa(idx),
-				Display:row[1],
+	for idx, row := range rows {
+		if !Exists(row[1], cities) {
+			cities = append(cities, models.CodeSystem{
+				Code:    strconv.Itoa(idx),
+				Display: row[1],
 			})
 		}
 	}
@@ -46,47 +45,47 @@ func main() {
 	// Push Cities Array to redis
 	key := fmt.Sprintf("cities")
 	// Marshalling the data before Pushing into Redis
-	b , err := json.Marshal(cities)
-	if err != nil{
+	b, err := json.Marshal(cities)
+	if err != nil {
 		panic(err)
 	}
 
-	status := cli.Set(key,string(b),0)
-	if status.Err() != nil{
+	status := cli.Set(key, string(b), 0)
+	if status.Err() != nil {
 		panic(status.Err())
 	}
 
-	for _ , city := range cities{
+	for _, city := range cities {
 		fmt.Println(city)
 
 		var areas []models.CodeSystem
-		for idx , row := range rows {
-			if city.Display == row[1]{
-				areas = append(areas,models.CodeSystem{
-					Code:strconv.Itoa(idx),
-					Display:row[3],
+		for idx, row := range rows {
+			if city.Display == row[1] {
+				areas = append(areas, models.CodeSystem{
+					Code:    strconv.Itoa(idx),
+					Display: row[3],
 				})
 			}
 		}
 		fmt.Println(areas)
 
-		key := fmt.Sprintf("cities::%s",city.Code)
+		key := fmt.Sprintf("cities::%s", city.Code)
 		// Marshalling the data before Pushing into Redis
-		b , err := json.Marshal(areas)
-		if err != nil{
+		b, err := json.Marshal(areas)
+		if err != nil {
 			panic(err)
 		}
 
-		status := cli.Set(key,string(b),0)
-		if status.Err() != nil{
+		status := cli.Set(key, string(b), 0)
+		if status.Err() != nil {
 			panic(status.Err())
 		}
 	}
 }
 
-func Exists(data string , arr []models.CodeSystem) bool {
-	for _ , val := range arr{
-		if val.Display == data{
+func Exists(data string, arr []models.CodeSystem) bool {
+	for _, val := range arr {
+		if val.Display == data {
 			return true
 			break
 		}
